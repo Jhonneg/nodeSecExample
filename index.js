@@ -30,11 +30,20 @@ function verifyCallback(accessToken, refreshToken, profile, done) {
 
 passport.use(new Strategy(AUTH_OPTIONS, verifyCallback));
 
+passport.serializeUser((user, done) => {
+  done(null, user);
+});
+
+passport.deserializeUser((obj, done) => {
+  done(null, obj);
+});
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(helmet());
+
 app.use(
   cookieSession({
     name: "session",
@@ -57,9 +66,10 @@ app.use((req, res, next) => {
 });
 
 app.use(passport.initialize());
+app.use(passport.session());
 
 function checkLoggedIn(req, res, next) {
-  const isLoggedIn = true;
+  const isLoggedIn = req.user;
   if (!isLoggedIn) {
     return res.status(401).json({
       error: "You must log in",
@@ -80,7 +90,7 @@ app.get(
   passport.authenticate("google", {
     failureRedirect: "/failure",
     successRedirect: "/",
-    session: false,
+    session: true,
   }),
   (req, res) => {
     console.log("Google called us back!");
