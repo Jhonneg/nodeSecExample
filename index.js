@@ -69,7 +69,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 function checkLoggedIn(req, res, next) {
-  const isLoggedIn = req.user;
+  const isLoggedIn = req.isAuthenticated() && req.user;
   if (!isLoggedIn) {
     return res.status(401).json({
       error: "You must log in",
@@ -97,7 +97,14 @@ app.get(
   }
 );
 
-app.get("/auth/logout", (req, res) => {});
+app.get("/auth/logout", (req, res, next) => {
+  req.logout((err) => {
+    if (err) {
+      return next(err);
+    }
+    res.redirect("/");
+  });
+});
 
 app.use(express.static("public"));
 
